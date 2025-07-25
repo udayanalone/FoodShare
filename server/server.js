@@ -17,20 +17,37 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/food', foodRoutes);
 
+// MongoDB connection
+const MONGODB_URI = process.env.MONGODB_URI;
+
+// Connect to MongoDB before processing requests
+let isConnected = false;
+const connectToDB = async () => {
+  if (isConnected) {
+    console.log('Using existing database connection');
+    return;
+  }
+  try {
+    await mongoose.connect(MONGODB_URI);
+    isConnected = true;
+    console.log('MongoDB connected');
+  } catch (error) {
+    console.log('MongoDB connection error:', error);
+    throw new Error('Failed to connect to MongoDB');
+  }
+};
+
+app.use(async (req, res, next) => {
+  await connectToDB();
+  next();
+});
+
 // Basic route
 app.get('/', (req, res) => {
   res.json({ message: 'Food Surplus API is running!' });
 });
 
-// MongoDB connection
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/food-surplus';
+// No need for app.listen() in a serverless environment
+// The PORT constant is also not needed
 
-mongoose.connect(MONGODB_URI)
-  .then(() => console.log('MongoDB connected'))
-  .catch(err => console.log('MongoDB connection error:', err));
-
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+module.exports = app;
