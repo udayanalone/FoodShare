@@ -42,6 +42,11 @@ app.use(async (req, res, next) => {
   next();
 });
 
+// Test route
+app.get('/api/test', (req, res) => {
+  res.json({ message: 'API is working!', timestamp: new Date().toISOString() });
+});
+
 // Basic route
 app.get('/', (req, res) => {
   res.json({ message: 'Food Surplus API is running!' });
