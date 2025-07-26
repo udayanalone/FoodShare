@@ -8,8 +8,30 @@ const foodRoutes = require('./routes/food');
 
 const app = express();
 
-// Middleware
-app.use(cors());
+// --- Robust CORS setup for Vercel ---
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://food-share-udayanalone83-gmailcom.vercel.app'
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true); // allow non-browser requests
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // Explicitly handle preflight
+// --- End CORS setup ---
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
