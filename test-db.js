@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const MONGODB_URI = "mongodb+srv://usalone370122:alone2004@server.fpv41av.mongodb.net/food-surplus?retryWrites=true&w=majority";
+const MONGODB_URI = "mongodb+srv://usalone370122:alone2004@server.fpv41av.mongodb.net/foodshare?retryWrites=true&w=majority";
 
 async function testConnection() {
   try {

@@ -17,8 +17,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/food', foodRoutes);
 
-// MongoDB connection
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://usalone370122:alone2004@server.fpv41av.mongodb.net/food-surplus?retryWrites=true&w=majority";
+// MongoDB connection - Updated to match your Atlas cluster
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://usalone370122:alone2004@server.fpv41av.mongodb.net/foodshare?retryWrites=true&w=majority";
 
 // Connect to MongoDB before processing requests
 let isConnected = false;
