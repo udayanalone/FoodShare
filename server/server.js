@@ -18,7 +18,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/food', foodRoutes);
 
 // MongoDB connection
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://usalone370122:alone2004@server.fpv41av.mongodb.net";
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://usalone370122:alone2004@server.fpv41av.mongodb.net/food-surplus?retryWrites=true&w=majority";
 
 // Connect to MongoDB before processing requests
 let isConnected = false;
@@ -28,28 +28,50 @@ const connectToDB = async () => {
     return;
   }
   try {
-    await mongoose.connect(MONGODB_URI);
+    console.log('Attempting to connect to MongoDB...');
+    await mongoose.connect(MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
+    });
     isConnected = true;
-    console.log('MongoDB connected');
+    console.log('MongoDB connected successfully');
   } catch (error) {
-    console.log('MongoDB connection error:', error);
+    console.log('MongoDB connection error:', error.message);
+    console.log('Connection string used:', MONGODB_URI.replace(/\/\/[^:]+:[^@]+@/, '//***:***@'));
     throw new Error('Failed to connect to MongoDB');
   }
 };
 
 app.use(async (req, res, next) => {
-  await connectToDB();
-  next();
+  try {
+    await connectToDB();
+    next();
+  } catch (error) {
+    console.error('Database connection failed:', error.message);
+    res.status(500).json({ 
+      message: 'Database connection failed', 
+      error: error.message 
+    });
+  }
 });
 
 // Test route
 app.get('/api/test', (req, res) => {
-  res.json({ message: 'API is working!', timestamp: new Date().toISOString() });
+  res.json({ 
+    message: 'API is working!', 
+    timestamp: new Date().toISOString(),
+    dbConnected: isConnected
+  });
 });
 
 // Basic route
 app.get('/', (req, res) => {
-  res.json({ message: 'Food Surplus API is running!' });
+  res.json({ 
+    message: 'Food Surplus API is running!',
+    dbConnected: isConnected
+  });
 });
 
 // No need for app.listen() in a serverless environment
