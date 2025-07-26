@@ -9,8 +9,8 @@
       "src": "client/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "installCommand": "npm install",
-        "buildCommand": "npm run build",
+        "installCommand": "cd client && npm install",
+        "buildCommand": "cd client && npm run build",
         "outputDirectory": "client/build"
       }
     }
@@ -24,5 +24,8 @@
       "source": "/(.*)",
       "destination": "/client/build/index.html"
     }
-  ]
+  ],
+  "env": {
+    "MONGODB_URI": "mongodb+srv://usalone370122:alone2004@server.fpv41av.mongodb.net"
+  }
 } 

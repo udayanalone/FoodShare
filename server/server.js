@@ -18,7 +18,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/food', foodRoutes);
 
 // MongoDB connection
-const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://usalone370122:alone2004@server.fpv41av.mongodb.net";
 
 // Connect to MongoDB before processing requests
 let isConnected = false;
