@@ -1,11 +1,69 @@
-const NotificationService = require('../services/notificationService');
+const Notification = require('../models/Notification');
 
-let notificationService;
+// Simple notification service without Socket.IO
+class NotificationService {
+  constructor() {}
 
-// Initialize notification service with io
-const initNotificationService = (io) => {
-  notificationService = new NotificationService(io);
-};
+  async getUserNotifications(userId, page = 1, limit = 20) {
+    try {
+      const skip = (page - 1) * limit;
+      
+      const [notifications, total] = await Promise.all([
+        Notification.find({ user: userId })
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(parseInt(limit)),
+        Notification.countDocuments({ user: userId })
+      ]);
+
+      return {
+        notifications,
+        currentPage: page,
+        totalPages: Math.ceil(total / limit),
+        totalCount: total
+      };
+    } catch (error) {
+      throw new Error('Failed to fetch notifications');
+    }
+  }
+
+  async markAsRead(notificationId, userId) {
+    try {
+      const notification = await Notification.findOneAndUpdate(
+        { _id: notificationId, user: userId },
+        { $set: { isRead: true } },
+        { new: true }
+      );
+      return notification;
+    } catch (error) {
+      throw new Error('Failed to mark notification as read');
+    }
+  }
+
+  async markAllAsRead(userId) {
+    try {
+      await Notification.updateMany(
+        { user: userId, isRead: false },
+        { $set: { isRead: true } }
+      );
+    } catch (error) {
+      throw new Error('Failed to mark all notifications as read');
+    }
+  }
+
+  async getUnreadCount(userId) {
+    try {
+      return await Notification.countDocuments({
+        user: userId,
+        isRead: false
+      });
+    } catch (error) {
+      throw new Error('Failed to get unread count');
+    }
+  }
+}
+
+const notificationService = new NotificationService();
 
 // Get user notifications
 const getUserNotifications = async (req, res) => {
@@ -61,10 +119,8 @@ const getUnreadCount = async (req, res) => {
 };
 
 module.exports = {
-  initNotificationService,
   getUserNotifications,
   markAsRead,
   markAllAsRead,
-  getUnreadCount,
-  getNotificationService: () => notificationService
+  getUnreadCount
 };

@@ -12,7 +12,6 @@ A modern web application that connects food donors with those in need, reducing 
 - **User Profiles** - Manage donations and claims
 
 ### Advanced Features
-- **Real-time Notifications** - Instant updates via Socket.IO
 - **Image Upload** - Cloudinary integration for food photos
 - **Geolocation** - Location-based food discovery
 - **Advanced Search** - Filter by category, location, expiry date
@@ -23,11 +22,10 @@ A modern web application that connects food donors with those in need, reducing 
 ## 🚀 Tech Stack
 
 ### Frontend
-- **React 18** - Modern React with hooks
+- **React** - UI library
 - **React Router** - Client-side routing
 - **Tailwind CSS** - Utility-first styling
 - **Axios** - HTTP client
-- **Socket.IO Client** - Real-time communication
 
 ### Backend
 - **Node.js** - Runtime environment
@@ -35,7 +33,6 @@ A modern web application that connects food donors with those in need, reducing 
 - **MongoDB** - NoSQL database
 - **Mongoose** - ODM for MongoDB
 - **JWT** - Authentication tokens
-- **Socket.IO** - Real-time communication
 - **Cloudinary** - Image storage and optimization
 - **Nodemailer** - Email notifications
 
