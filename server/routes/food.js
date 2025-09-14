@@ -8,6 +8,15 @@ const router = express.Router();
 // Get all available food items
 router.get('/', foodController.getAllFoodItems);
 
+// Advanced search with filters
+router.get('/search', foodController.searchFoodItems);
+
+// Get nearby food items
+router.get('/nearby', foodController.getNearbyFoodItems);
+
+// Get food categories
+router.get('/categories', foodController.getFoodCategories);
+
 // Create food item
 router.post('/', auth, foodController.createFoodItem);
 

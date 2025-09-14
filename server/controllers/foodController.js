@@ -1,5 +1,6 @@
 // foodController.js
 const Food = require('../models/Food');
+const { getNotificationService } = require('./notificationController');
 
 exports.getAllFoodItems = async (req, res) => {
   try {
@@ -7,6 +8,112 @@ exports.getAllFoodItems = async (req, res) => {
       .populate('donor', 'name email phone')
       .sort({ createdAt: -1 });
     res.json(foods);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
+// Advanced search with filters
+exports.searchFoodItems = async (req, res) => {
+  try {
+    const {
+      query,
+      category,
+      location,
+      expiryDays,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+      page = 1,
+      limit = 10
+    } = req.query;
+
+    // Build search criteria
+    let searchCriteria = { isAvailable: true };
+
+    // Text search in title and description
+    if (query) {
+      searchCriteria.$or = [
+        { title: { $regex: query, $options: 'i' } },
+        { description: { $regex: query, $options: 'i' } }
+      ];
+    }
+
+    // Category filter
+    if (category && category !== 'all') {
+      searchCriteria.category = category;
+    }
+
+    // Location filter
+    if (location) {
+      searchCriteria.location = { $regex: location, $options: 'i' };
+    }
+
+    // Expiry date filter
+    if (expiryDays) {
+      const futureDate = new Date();
+      futureDate.setDate(futureDate.getDate() + parseInt(expiryDays));
+      searchCriteria.expiryDate = { $lte: futureDate };
+    }
+
+    // Sorting
+    const sortOptions = {};
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1;
+
+    // Pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const foods = await Food.find(searchCriteria)
+      .populate('donor', 'name email phone')
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const total = await Food.countDocuments(searchCriteria);
+
+    res.json({
+      foods,
+      pagination: {
+        current: parseInt(page),
+        pages: Math.ceil(total / parseInt(limit)),
+        total
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
+// Get nearby food items (requires coordinates)
+exports.getNearbyFoodItems = async (req, res) => {
+  try {
+    const { lat, lng, radius = 10 } = req.query;
+
+    if (!lat || !lng) {
+      return res.status(400).json({ message: 'Latitude and longitude are required' });
+    }
+
+    // For now, we'll do a simple location text search
+    // In production, you'd want to use MongoDB's geospatial queries
+    const foods = await Food.find({ isAvailable: true })
+      .populate('donor', 'name email phone')
+      .sort({ createdAt: -1 });
+
+    res.json(foods);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
+// Get food categories with counts
+exports.getFoodCategories = async (req, res) => {
+  try {
+    const categories = await Food.aggregate([
+      { $match: { isAvailable: true } },
+      { $group: { _id: '$category', count: { $sum: 1 } } },
+      { $sort: { count: -1 } }
+    ]);
+
+    res.json(categories);
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
@@ -29,6 +136,13 @@ exports.createFoodItem = async (req, res) => {
 
     await food.save();
     await food.populate('donor', 'name email phone');
+
+    // Notify nearby users (simplified - in production you'd use geolocation)
+    const notificationService = getNotificationService();
+    if (notificationService) {
+      // For demo, we'll skip nearby user notification
+      // In production, you'd query users within a radius
+    }
 
     res.status(201).json({
       message: 'Food item created successfully',
@@ -87,6 +201,16 @@ exports.claimFoodItem = async (req, res) => {
     await food.save();
     await food.populate('donor', 'name email phone');
     await food.populate('claimedBy', 'name email phone');
+
+    // Send notification to donor
+    const notificationService = getNotificationService();
+    if (notificationService) {
+      try {
+        await notificationService.notifyFoodClaimed(food, req.user);
+      } catch (error) {
+        console.error('Error sending claim notification:', error);
+      }
+    }
 
     res.json({
       message: 'Food item claimed successfully',

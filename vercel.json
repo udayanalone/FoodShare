@@ -24,8 +24,5 @@
       "source": "/(.*)",
       "destination": "/client/build/index.html"
     }
-  ],
-  "env": {
-    "MONGODB_URI": "mongodb+srv://usalone370122:alone2004@server.fpv41av.mongodb.net"
-  }
-} 
+  ]
+}
